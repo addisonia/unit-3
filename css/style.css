@@ -16,5 +16,29 @@
 }
 
 
+.county {
+    fill: #b2a2d3;
+    stroke: #000;
+    stroke-width: 0.5;
+}
+
+
+/* graticule */
+.gratBackground {
+    fill: #e2eafa; /* Color for water */
+}
+
+.gratLines {
+    fill: none;
+    stroke: #999; /* Color for graticule lines */
+    stroke-width: 0.5px;
+}
+
+.map {
+    border: medium solid #999; /* Border for the map frame */
+}
+
+
+
 
 

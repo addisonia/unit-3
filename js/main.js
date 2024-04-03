@@ -103,3 +103,89 @@ window.onload = function() {
           .attr("dy", "1.2em")
           .text(d => `Pop. ${d3.format(",")(d.population)}`);
 };
+
+
+
+// Begin script when window loads
+window.onload = setMap;
+
+// Set up choropleth map
+function setMap(){
+    // Map frame dimensions
+    var width = window.innerWidth * 0.9,
+        height = 460;
+
+    var scale = 2500;
+
+
+    // Create new svg container for the map
+    var map = d3.select("body")
+        .append("svg")
+        .attr("class", "map")
+        .attr("width", width)
+        .attr("height", height);
+
+    // Create Albers equal area conic projection centered on Nevada
+    var projection = d3.geoAlbers()
+        .center([0, 38]) // Nevada's approximate latitude
+        .rotate([116, 0, 0]) // Nevada's approximate longitude
+        .parallels([35, 43]) // Standard parallels for USA
+        .scale(scale)
+        .translate([width / 2, height / 2]);
+
+    // Path generator using the Albers projection
+    var path = d3.geoPath()
+        .projection(projection);
+
+    // Use Promise.all to parallelize asynchronous data loading
+    var promises = [
+        d3.csv("data/Nevada_Counties_SIMPLIFIED.csv"),
+        d3.json("data/Nevada_Counties_SIMPLIFIED.json") // Adjusted for .json
+    ];
+
+    Promise.all(promises).then(callback);
+
+    function callback(data){    
+        var csvData = data[0]; // CSV attribute data
+        var nevadaTopojson = data[1]; // TopoJSON spatial data
+    
+        // Translate TopoJSON to GeoJSON
+        var nevadaCounties = topojson.feature(nevadaTopojson, nevadaTopojson.objects.Nevada_Counties_SIMPLIFIED);
+    
+        // Draw Nevada counties on the map
+        map.selectAll(".county")
+            .data(nevadaCounties.features)
+            .enter()
+            .append("path")
+            .attr("class", "county")
+            .attr("d", path);
+    
+        // Check the features on the console
+        console.log(nevadaCounties);
+    }
+
+
+    
+    // Create graticule generator
+    var graticule = d3.geoGraticule()
+        .step([5, 5]); // Place graticule lines every 5 degrees of longitude and latitude
+
+    // Draw graticule background
+    var gratBackground = map.append("path")
+        .datum(graticule.outline()) // Bind graticule background
+        .attr("class", "gratBackground") // Assign class for styling
+        .attr("d", path); // Project graticule
+
+    // Draw graticule lines
+    var gratLines = map.selectAll(".gratLines") // Select graticule elements that will be created
+        .data(graticule.lines()) // Bind graticule lines to each element to be created
+        .enter() // Create an element for each datum
+        .append("path") // Append each element to the svg as a path element
+        .attr("class", "gratLines") // Assign class for styling
+        .attr("d", path); // Project graticule lines
+    
+}
+
+
+
+
