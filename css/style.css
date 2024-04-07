@@ -7,8 +7,9 @@ body {
   /* Map styles */
   .map {
     border: 1px solid #999;
-    margin: 10px auto;
-    display: block;
+    margin: 10px 0 0 20px;
+    width: 50%; /* Set the map width to 50% of the screen */
+    float: left; /* Float the map to the left */
   }
   
   .county {
@@ -17,7 +18,7 @@ body {
   }
   
   .gratBackground {
-    fill: #e2eafa;
+    fill: #d7dce7;
   }
   
   .gratLines {
@@ -29,9 +30,18 @@ body {
   /* Chart styles */
   .chart {
     background-color: rgba(128, 128, 128, 0.2);
-    border: 1px solid #999;
-    float: right;
-    margin: 10px 20px;
+    border: medium solid #999;
+    margin: 10px 20px 0 0;
+    width: 45%; /* Set the chart width to 45% of the screen */
+    float: right; /* Float the chart to the right */
+  }
+  
+  .chartTitle {
+    font-family: sans-serif;
+    font-size: 1.5em;
+    font-weight: bold;
+    text-align: center; /* Center the chart title text */
+    word-wrap: break-word; /* Wrap the chart title text if it overlaps */
   }
   
   .chartBackground {
@@ -40,14 +50,9 @@ body {
   
   .numbers {
     fill: white;
-    font-size: 12px;
+    font-family: sans-serif;
+    font-size: 0.8em;
     text-anchor: middle;
-  }
-  
-  .chartTitle {
-    font-size: 18px;
-    font-weight: bold;
-    fill: #333;
   }
   
   .axis path,
@@ -59,6 +64,7 @@ body {
   }
   
   .axis text {
-    font-size: 12px;
-    fill: #666;
+    font-family: sans-serif;
+    font-size: 0.8em;
+    fill: #999;
   }
