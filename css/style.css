@@ -1,44 +1,64 @@
-/*Add CSS styles here*/
-
-.container {
-    border: 1px solid #ccc; /* Adds a border around the SVG container */
-}
-
-.innerRect {
-    stroke: #000; /* Adds a border around the rectangle */
-    stroke-width: 2px; /* Sets the border width */
-}
-
-
-.circles {
-    stroke: #333;
-    stroke-width: 2px;
-}
-
-
-.county {
-    fill: #b2a2d3;
+/* General styles */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f2f2f2;
+  }
+  
+  /* Map styles */
+  .map {
+    border: 1px solid #999;
+    margin: 10px auto;
+    display: block;
+  }
+  
+  .county {
     stroke: #000;
-    stroke-width: 0.5;
-}
-
-
-/* graticule */
-.gratBackground {
-    fill: #e2eafa; /* Color for water */
-}
-
-.gratLines {
-    fill: none;
-    stroke: #999; /* Color for graticule lines */
     stroke-width: 0.5px;
-}
-
-.map {
-    border: medium solid #999; /* Border for the map frame */
-}
-
-
-
-
-
+  }
+  
+  .gratBackground {
+    fill: #e2eafa;
+  }
+  
+  .gratLines {
+    fill: none;
+    stroke: #999;
+    stroke-width: 0.5px;
+  }
+  
+  /* Chart styles */
+  .chart {
+    background-color: rgba(128, 128, 128, 0.2);
+    border: 1px solid #999;
+    float: right;
+    margin: 10px 20px;
+  }
+  
+  .chartBackground {
+    fill: white;
+  }
+  
+  .numbers {
+    fill: white;
+    font-size: 12px;
+    text-anchor: middle;
+  }
+  
+  .chartTitle {
+    font-size: 18px;
+    font-weight: bold;
+    fill: #333;
+  }
+  
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: #999;
+    stroke-width: 1px;
+    shape-rendering: crispEdges;
+  }
+  
+  .axis text {
+    font-size: 12px;
+    fill: #666;
+  }
