@@ -77,3 +77,22 @@ body {
     padding: 5px;
     font-size: 12px;
 }
+
+
+.infolabel {
+  position: absolute;
+  height: 50px;
+  min-width: 100px;
+  color: #fff;
+  background-color: #000;
+  border: solid thin #fff;
+  padding: 5px 10px;
+  pointer-events: none; /* Ensures that the label does not interfere with map interaction */
+  opacity: 0.8;
+}
+
+.infolabel h1, .infolabel b {
+  display: block; /* Ensures proper line breaks and separation */
+  margin: 0;
+  padding: 0;
+}

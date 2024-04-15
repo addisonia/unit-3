@@ -73,7 +73,8 @@ function setMap() {
     })
     .on("mouseout", function(event, d) {
         dehighlight(d.properties);
-    });
+    })
+    .on("mousemove", moveLabel);
 
     regions.append("desc")
        .text(function(d) {
@@ -203,10 +204,12 @@ var bars = chart.selectAll(".bar")
   .style("fill", d => colorScale(d[expressed]));
 
 bars.on("mouseover", function(event, d) {
-  highlight(d);
-}).on("mouseout", function(event, d) {
-  dehighlight(d);
-});
+    highlight(d);
+})
+.on("mouseout", function(event, d) {
+    dehighlight(d);
+})
+.on("mousemove", moveLabel);
 
 bars.append("desc")
   .text('{"stroke": "none", "stroke-width": "0px"}');
@@ -356,6 +359,9 @@ function highlight(props) {
   d3.selectAll("." + props.NAME.replace(/ /g, '_'))
       .style("stroke", "blue")
       .style("stroke-width", "2px");
+
+  // Set label for highlighted element
+  setLabel(props);
 }
 
 
@@ -365,5 +371,38 @@ function dehighlight(props) {
   var originalStyle = JSON.parse(selected.select("desc").text());
   selected.style("stroke", originalStyle.stroke)
          .style("stroke-width", originalStyle["stroke-width"]);
+
+  // Remove dynamic label
+  d3.selectAll(".infolabel").remove();
 }
+
+
+//function to create dynamic label
+function setLabel(props){
+  //label content
+  var labelAttribute = "<h1>" + props[expressed] +
+      "</h1><b>" + expressed + "</b>";
+
+  //create info label div
+  var infolabel = d3.select("body")
+      .append("div")
+      .attr("class", "infolabel")
+      .attr("id", props.adm1_code + "_label")
+      .html(labelAttribute);
+
+  var regionName = infolabel.append("div")
+      .attr("class", "labelname")
+      .html(props.name);
+};
+
+//function to move info label with mouse
+function moveLabel(){
+  //use coordinates of mousemove event to set label coordinates
+  var x = event.clientX + 10,
+      y = event.clientY - 75;
+
+  d3.select(".infolabel")
+      .style("left", x + "px")
+      .style("top", y + "px");
+};
 
