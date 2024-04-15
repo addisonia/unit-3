@@ -81,18 +81,28 @@ body {
 
 .infolabel {
   position: absolute;
-  height: 50px;
-  min-width: 100px;
+  height: auto; /* Auto height based on content */
+  min-width: 120px; /* Adjust width as needed */
+  max-width: 200px; /* Limit width to prevent excessive width */
   color: #fff;
   background-color: #000;
   border: solid thin #fff;
   padding: 5px 10px;
   pointer-events: none; /* Ensures that the label does not interfere with map interaction */
   opacity: 0.8;
+  white-space: nowrap; /* Prevents text wrapping */
+  overflow: hidden; /* Hides any overflowing text */
+  text-overflow: ellipsis; /* Adds an ellipsis to overflowing text */
 }
 
-.infolabel h1, .infolabel b {
-  display: block; /* Ensures proper line breaks and separation */
+.infolabel h1 {
   margin: 0;
   padding: 0;
+  font-size: 14px; /* Smaller font size for better fit */
+}
+
+.infolabel b {
+  margin: 0;
+  display: block;
+  font-size: 12px; /* Smaller font size for details */
 }

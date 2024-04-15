@@ -281,8 +281,15 @@ function updateMap(colorScale) {
 
 // Add a function to create the dropdown for attribute selection
 function createDropdown(attrArray) {
-  var dropdown = d3.select("body")
-      .append("select")
+  var readableNames = {
+      "POP_GROWTH_PCT_SINCE_2000": "Population Growth (%) Since 2000",
+      "MEDIAN_INCOME": "Median Income",
+      "UNEMPLOYMENT_RATE": "Unemployment Rate",
+      "POVERTY_RATE": "Poverty Rate",
+      "EDUCATION_LEVEL": "Education Level"
+  };
+
+  var dropdown = d3.select("body").append("select")
       .attr("class", "dropdown")
       .on("change", function() {
           changeAttribute(this.value);
@@ -293,8 +300,9 @@ function createDropdown(attrArray) {
       .enter()
       .append("option")
       .attr("value", d => d)
-      .text(d => d);
+      .text(d => readableNames[d]);  // Use readable names for options
 }
+
 
 
 // Call createDropdown in your window.onload function
@@ -305,8 +313,9 @@ window.onload = function() {
 
 
 function changeAttribute(attribute) {
-  expressed = attribute;
-  colorScale = makeColorScale(map.selectAll(".county").data());
+  expressed = attribute;  // Update the expressed attribute globally
+  colorScale = makeColorScale(map.selectAll(".county").data());  // Recalculate color scale based on new attribute
+
   d3.selectAll(".county")
       .transition()
       .duration(500)
@@ -315,44 +324,23 @@ function changeAttribute(attribute) {
           return value ? colorScale(value) : "#ccc";
       });
 
-      d3.select(".chartTitle")
-      .text(function() {
-          switch (expressed) {
-              case "POP_GROWTH_PCT_SINCE_2000":
-                  return "Population Growth (%)";
-              case "MEDIAN_INCOME":
-                  return "Median Income";
-              case "UNEMPLOYMENT_RATE":
-                  return "Unemployment Rate";
-              case "POVERTY_RATE":
-                  return "Poverty Rate";
-              case "EDUCATION_LEVEL":
-                  return "Education Level";
-              default:
-                  return "";
-          }
-      });
-  
-  d3.select(".chartTitle + tspan")
-      .text(function() {
-          switch (expressed) {
-              case "POP_GROWTH_PCT_SINCE_2000":
-                  return "since 2000 in Nevada Counties";
-              case "MEDIAN_INCOME":
-                  return "in Nevada Counties";
-              case "UNEMPLOYMENT_RATE":
-                  return "in Nevada Counties";
-              case "POVERTY_RATE":
-                  return "in Nevada Counties";
-              case "EDUCATION_LEVEL":
-                  return "in Nevada Counties";
-              default:
-                  return "";
-          }
-      });
-
-  updateChart(csvData, colorScale);
+  updateChartTitle();  // Update chart titles and subtitles
+  updateChart(csvData, colorScale);  // Redraw chart with new attribute data
 }
+
+function updateChartTitle() {
+  var titles = {
+      "POP_GROWTH_PCT_SINCE_2000": "Population Growth (%) Since 2000",
+      "MEDIAN_INCOME": "Median Income",
+      "UNEMPLOYMENT_RATE": "Unemployment Rate",
+      "POVERTY_RATE": "Poverty Rate",
+      "EDUCATION_LEVEL": "Education Level"
+  };
+
+  d3.select(".chartTitle").text(titles[expressed]);
+  d3.select(".chartTitle + tspan").text("in Nevada Counties");  // Static text as the subtitle
+}
+
 
 
 function highlight(props) {
@@ -378,22 +366,35 @@ function dehighlight(props) {
 
 
 //function to create dynamic label
-function setLabel(props){
-  //label content
-  var labelAttribute = "<h1>" + props[expressed] +
-      "</h1><b>" + expressed + "</b>";
+function setLabel(props) {
+  var labelValue = props[expressed];
+  
+  // Append "%" for rates specifically
+  if (expressed === "POP_GROWTH_PCT_SINCE_2000" || expressed === "UNEMPLOYMENT_RATE" || expressed === "POVERTY_RATE") {
+      labelValue += "%";  // Ensure the percentage sign is appended correctly
+  } else if (expressed === "MEDIAN_INCOME") {
+    labelValue = "$" + parseFloat(labelValue).toLocaleString();  // Prepend "$" and format with commas
+  }
 
-  //create info label div
-  var infolabel = d3.select("body")
-      .append("div")
-      .attr("class", "infolabel")
-      .attr("id", props.adm1_code + "_label")
-      .html(labelAttribute);
+  // Label content, now only showing the value
+  var labelAttribute = "<h1>" + labelValue + "</h1>";
 
-  var regionName = infolabel.append("div")
+  // Update or create the info label div
+  var infolabel = d3.select(".infolabel");
+  if (infolabel.empty()) {
+      infolabel = d3.select("body").append("div")
+          .attr("class", "infolabel")
+          .attr("id", props.adm1_code + "_label");
+  }
+  infolabel.html(labelAttribute);
+
+  // Optionally, append a div for the county name if needed
+  infolabel.append("div")
       .attr("class", "labelname")
-      .html(props.name);
-};
+      .html(props.NAME);
+}
+
+
 
 //function to move info label with mouse
 function moveLabel(){
