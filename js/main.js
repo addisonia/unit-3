@@ -67,6 +67,18 @@ function setMap() {
           return "#ccc"; // Assign a neutral color for missing values
         }
       });
+
+    regions.on("mouseover", function(event, d) {
+        highlight(d.properties);
+    })
+    .on("mouseout", function(event, d) {
+        dehighlight(d.properties);
+    });
+
+    regions.append("desc")
+       .text(function(d) {
+           return JSON.stringify({stroke: "#000", "stroke-width": "0.5px"});
+       });
   }
 
   // Create graticule generator
@@ -241,6 +253,16 @@ function setChart(csvData, colorScale) {
       .style("text-anchor", "middle") // Center the text for the tspan as well
       .text("since 2000 in Nevada Counties");
 
+    bars.on("mouseover", function(event, d) {
+        highlight(d);
+    })
+    .on("mouseout", function(event, d) {
+        dehighlight(d);
+    });
+
+  bars.append("desc")
+  .text('{"stroke": "none", "stroke-width": "0px"}');
+
 }
 
 
@@ -367,3 +389,20 @@ function changeAttribute(attribute) {
 
   updateChart(csvData, colorScale);
 }
+
+
+function highlight(props) {
+  d3.selectAll("." + props.NAME.replace(/ /g, '_'))
+      .style("stroke", "blue")
+      .style("stroke-width", "2px");
+}
+
+
+function dehighlight(props) {
+  var selector = "." + props.NAME.replace(/ /g, '_');
+  var selected = d3.selectAll(selector);
+  var originalStyle = JSON.parse(selected.select("desc").text());
+  selected.style("stroke", originalStyle.stroke)
+         .style("stroke-width", originalStyle["stroke-width"]);
+}
+
