@@ -268,39 +268,50 @@ function setChart(csvData, colorScale) {
 
 
 function updateChart(csvData, colorScale) {
-  yScale = d3.scaleLinear()
-  .range([463, 0])
-  .domain([0, d3.max(csvData, function (d) { return parseFloat(d[expressed]); }) * 1.2]);
+  yScale.domain([0, d3.max(csvData, function(d) { return parseFloat(d[expressed]); }) * 1.1]); // Update the Y scale
+
+  var chartWidth = window.innerWidth * 0.45; // Ensure chart width is updated dynamically
+  var chartInnerWidth = chartWidth; // Adjusted inner width if needed
 
   var bars = d3.selectAll(".bar")
-  .sort(function (a, b) { return b[expressed] - a[expressed]; })
-  .data(csvData, d => d.NAME);
+      .data(csvData.sort(function(a, b) { // Sort data when attribute changes
+          return b[expressed] - a[expressed];
+      }), function(d) { return d.NAME; });
 
   bars.enter()
       .append("rect")
       .merge(bars)
       .transition()
       .duration(500)
+      .attr("x", function(d, i) { // Recalculate x positions after sorting
+          return i * (chartInnerWidth / csvData.length);
+      })
+      .attr("width", chartInnerWidth / csvData.length - 1)
       .attr("height", d => 463 - yScale(parseFloat(d[expressed])))
       .attr("y", d => yScale(parseFloat(d[expressed])))
       .style("fill", d => colorScale(d[expressed]));
 
   bars.exit().remove();
 
-  // Update the bar labels
+  // Update the labels with new sorting
   var numbers = d3.selectAll(".numbers")
-      .data(csvData, d => d.NAME);
+      .data(csvData, function(d) { return d.NAME; });
 
   numbers.enter()
       .append("text")
       .merge(numbers)
       .transition()
       .duration(500)
+      .attr("x", function(d, i) {
+          var fraction = chartInnerWidth / csvData.length;
+          return i * fraction + (fraction - 1) / 2;
+      })
       .attr("y", d => yScale(parseFloat(d[expressed])) + 15)
       .text(d => d[expressed]);
 
   numbers.exit().remove();
 }
+
 
 function updateMap(colorScale) {
   d3.selectAll(".county")
