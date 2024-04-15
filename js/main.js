@@ -96,11 +96,21 @@ function makeColorScale(data) {
   });
   var clusters = ss.ckmeans(domainArray, 9);
   domainArray = clusters.map(function(d) { return d3.min(d); });
-  domainArray.shift();
-  return d3.scaleThreshold().domain(domainArray).range([
-      "#f7fcf0", "#e0f3db", "#ccebc5", "#a8ddb5", "#7bccc4", "#4eb3d3", "#2b8cbe", "#0868ac", "#084081"
+  domainArray.shift(); // Adjust to remove the first breakpoint if necessary
+  return d3.scaleThreshold().domain(domainArray).range([ 
+      "#ccebc5", 
+      "#a8ddb5", 
+      "#7bccc4", 
+      "#4eb3d3", 
+      "#2b8cbe", 
+      "#0868ac", 
+      "#084081", 
+      "#052c5c",
+      '#040624'
   ]);
 }
+
+
 
 
 
