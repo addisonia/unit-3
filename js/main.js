@@ -162,82 +162,54 @@ function callback(data) {
 
 // Function to create coordinated bar chart
 function setChart(csvData, colorScale) {
+  var chartWidth = window.innerWidth * 0.45,
+  chartHeight = 460,
+  margin = {top: 10, right: 20, bottom: 30, left: 50}, // Adjust left for axis labels
+  chartInnerWidth = chartWidth - margin.left - margin.right,
+  chartInnerHeight = chartHeight - margin.top - margin.bottom;
 
-  yScale = d3.scaleLinear()
-  .range([463, 0])
-  .domain([0, d3.max(csvData, function (d) { return parseFloat(d[expressed]); })]);
+var chart = d3.select("body").append("svg")
+  .attr("width", chartWidth)
+  .attr("height", chartHeight)
+  .attr("class", "chart")
+  .append("g")
+  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
-    // Chart frame dimensions remain the same as you've defined them
-    var chartWidth = window.innerWidth * 0.45,
-        chartHeight = 460,
-        leftPadding = 0,
-        rightPadding = 0,
-        topBottomPadding = 0,
-        chartInnerWidth = chartWidth,
-        chartInnerHeight = chartHeight,
-        translate = "translate(0,0)";
+var maxDataValue = d3.max(csvData, function(d) { return parseFloat(d[expressed]); });
+yScale = d3.scaleLinear()
+  .range([chartInnerHeight, 0])
+  .domain([0, maxDataValue / 0.80]);  // Adjust the domain so the top 20% of the chart is empty
 
-    // No change in creating the SVG container for the chart
-    var chart = d3.select("body")
-        .append("svg")
-        .attr("width", chartWidth)
-        .attr("height", chartHeight)
-        .attr("class", "chart");
+var yAxis = d3.axisLeft(yScale);
+chart.append("g")
+  .attr("class", "axis y-axis")
+  .call(yAxis);
 
-    // No change to the chart background creation
-    var chartBackground = chart.append("rect")
-        .attr("class", "chartBackground")
-        .attr("width", chartInnerWidth)
-        .attr("height", chartInnerHeight)
-        .attr("transform", translate)
-        .attr("fill", "white");
+var chartBackground = chart.append("rect")
+  .attr("class", "chartBackground")
+  .attr("width", chartInnerWidth)
+  .attr("height", chartInnerHeight)
+  .attr("fill", "white");
 
+var bars = chart.selectAll(".bar")
+  .data(csvData.sort(function(a, b) { return b[expressed] - a[expressed]; }), d => d.NAME)
+  .enter()
+  .append("rect")
+  .attr("class", function(d) { return "bar " + d.NAME.replace(/ /g, '_'); })
+  .attr("x", function(d, i) { return i * (chartInnerWidth / csvData.length); })
+  .attr("width", chartInnerWidth / csvData.length - 1)
+  .attr("y", d => yScale(parseFloat(d[expressed])))
+  .attr("height", d => chartInnerHeight - yScale(parseFloat(d[expressed])))
+  .style("fill", d => colorScale(d[expressed]));
 
-    // Adjust `x` attribute calculation for the bars
-    var bars = chart.selectAll(".bar")
-    .data(csvData)
-    .enter()
-    .append("rect")
-    .sort(function (a, b) { return b[expressed] - a[expressed]; })
-    .attr("class", function (d) { return "bar " + d.NAME; })
-    .attr("width", chartInnerWidth / csvData.length - 1)
-    .attr("x", function (d, i) {
-        var totalBarsWidth = csvData.length * (chartInnerWidth / csvData.length);
-        var startingPoint = chartWidth - rightPadding - totalBarsWidth;
-        return i * (chartInnerWidth / csvData.length) + startingPoint;
-    })
-    .attr("height", function (d) { return 463 - yScale(parseFloat(d[expressed])); })
-    .attr("y", function (d) { return yScale(parseFloat(d[expressed])); })
-    .style("fill", function (d) { return colorScale(d[expressed]); });
+bars.on("mouseover", function(event, d) {
+  highlight(d);
+}).on("mouseout", function(event, d) {
+  dehighlight(d);
+});
 
-        // Update existing bars
-        bars.enter()
-        .append("rect")
-        .merge(bars)
-        .transition()
-        .duration(500)
-        .attr("y", function(d) { return yScale(parseFloat(d[expressed])); })
-        .attr("height", function(d) { return 463 - yScale(parseFloat(d[expressed])); })
-        .style("fill", function(d) { return colorScale(d[expressed]); });
-
-    bars.exit().remove(); // Remove any unneeded bars
-    // Annotate bars with attribute value text
-    var numbers = chart.selectAll(".numbers")
-      .data(csvData)
-      .enter()
-      .append("text")
-      .sort(function (a, b) { return b[expressed] - a[expressed]; })
-      .attr("class", function (d) { return "numbers " + d.NAME; })
-      .attr("text-anchor", "middle")
-      .attr("x", function (d, i) {
-        var fraction = chartInnerWidth / csvData.length;
-        return i * fraction + (fraction - 1) / 2 + leftPadding;
-      })
-      .attr("y", function (d) { return yScale(parseFloat(d[expressed])) + 15 + topBottomPadding; })
-      .text(function (d) { return d[expressed]; });
-
-    // Calculate the desired offset from the center
-    var offset = 200; // Example offset value; adjust as needed
+bars.append("desc")
+  .text('{"stroke": "none", "stroke-width": "0px"}');
 
     // Adjusted chart title to always be centered within the chart box
     var chartTitle = chart.append("text")
@@ -252,65 +224,43 @@ function setChart(csvData, colorScale) {
       .attr("y", 65)
       .style("text-anchor", "middle") // Center the text for the tspan as well
       .text("since 2000 in Nevada Counties");
-
-    bars.on("mouseover", function(event, d) {
-        highlight(d);
-    })
-    .on("mouseout", function(event, d) {
-        dehighlight(d);
-    });
-
-  bars.append("desc")
-  .text('{"stroke": "none", "stroke-width": "0px"}');
-
 }
 
 
 
+
 function updateChart(csvData, colorScale) {
-  yScale.domain([0, d3.max(csvData, function(d) { return parseFloat(d[expressed]); }) * 1.1]); // Update the Y scale
+  var chartWidth = window.innerWidth * 0.45,
+      margin = {top: 10, right: 20, bottom: 30, left: 50}, // Adjust left for axis labels
+      chartInnerWidth = chartWidth - margin.left - margin.right,
+      chartInnerHeight = 460 - margin.top - margin.bottom;
 
-  var chartWidth = window.innerWidth * 0.45; // Ensure chart width is updated dynamically
-  var chartInnerWidth = chartWidth; // Adjusted inner width if needed
+  var chart = d3.select(".chart").select("g"),
+  maxDataValue = d3.max(csvData, function(d) { return parseFloat(d[expressed]); });
 
-  var bars = d3.selectAll(".bar")
-      .data(csvData.sort(function(a, b) { // Sort data when attribute changes
-          return b[expressed] - a[expressed];
-      }), function(d) { return d.NAME; });
+  // Update the scale domain to maintain the 30% empty space at the top
+  yScale.domain([0, maxDataValue / 0.8]);
+
+  chart.select(".y-axis").transition().duration(500).call(d3.axisLeft(yScale));
+
+  var bars = chart.selectAll(".bar")
+      .data(csvData.sort(function(a, b) { return b[expressed] - a[expressed]; }), d => d.NAME);
 
   bars.enter()
       .append("rect")
       .merge(bars)
       .transition()
       .duration(500)
-      .attr("x", function(d, i) { // Recalculate x positions after sorting
-          return i * (chartInnerWidth / csvData.length);
-      })
+      .attr("x", (d, i) => i * (chartInnerWidth / csvData.length))
       .attr("width", chartInnerWidth / csvData.length - 1)
-      .attr("height", d => 463 - yScale(parseFloat(d[expressed])))
       .attr("y", d => yScale(parseFloat(d[expressed])))
+      .attr("height", d => chartInnerHeight - yScale(parseFloat(d[expressed])))
       .style("fill", d => colorScale(d[expressed]));
 
   bars.exit().remove();
-
-  // Update the labels with new sorting
-  var numbers = d3.selectAll(".numbers")
-      .data(csvData, function(d) { return d.NAME; });
-
-  numbers.enter()
-      .append("text")
-      .merge(numbers)
-      .transition()
-      .duration(500)
-      .attr("x", function(d, i) {
-          var fraction = chartInnerWidth / csvData.length;
-          return i * fraction + (fraction - 1) / 2;
-      })
-      .attr("y", d => yScale(parseFloat(d[expressed])) + 15)
-      .text(d => d[expressed]);
-
-  numbers.exit().remove();
 }
+
+
 
 
 function updateMap(colorScale) {
