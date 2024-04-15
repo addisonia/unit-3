@@ -1,51 +1,52 @@
 // Pseudo-global variables
 var attrArray = ["POP_GROWTH_PCT_SINCE_2000", "MEDIAN_INCOME", "UNEMPLOYMENT_RATE", "POVERTY_RATE", "EDUCATION_LEVEL"];
 var expressed = attrArray[0]; // Initial attribute
-var csvData, map, colorScale; // Define globally for access in multiple functions
+var csvData, map, colorScale, yScale; // Define globally for access in multiple functions
 
 // Begin script when window loads
 window.onload = function() {
-  setMap(); // This will now initialize everything
+  setMap();
+  createDropdown(attrArray);
 };
 
 // Set up choropleth map
+
 function setMap() {
   var width = window.innerWidth * 0.5,
       height = 460;
 
-  map = d3.select("body") // Adjust 'var' to global by removing it
-    .append("svg")
-    .attr("class", "map")
-    .attr("width", width)
-    .attr("height", height);
+  map = d3.select("body")
+      .append("svg")
+      .attr("class", "map")
+      .attr("width", width)
+      .attr("height", height);
 
   var projection = d3.geoAlbers()
-    .rotate([115, 0, 0])
-    .center([-2, 38.5])
-    .parallels([35, 43])
-    .scale(3000)
-    .translate([width / 2, height / 2]);
+      .rotate([115, 0, 0])
+      .center([-2, 38.5])
+      .parallels([35, 43])
+      .scale(3000)
+      .translate([width / 2, height / 2]);
 
   var path = d3.geoPath().projection(projection);
   var promises = [
-    d3.csv("data/Nevada_Counties_SIMPLIFIED.csv"),
-    d3.json("data/Nevada_Counties_SIMPLIFIED.json")
+      d3.csv("data/Nevada_Counties_SIMPLIFIED.csv"),
+      d3.json("data/Nevada_Counties_SIMPLIFIED.json")
   ];
 
   Promise.all(promises).then(function(data) {
-    csvData = data[0];
-    var nevadaTopojson = data[1];
-    var nevadaCounties = topojson.feature(nevadaTopojson, nevadaTopojson.objects.Nevada_Counties_SIMPLIFIED);
-    nevadaCounties.features.forEach(function(feature) {
-      var countyData = csvData.find(function(d) { return d.NAME === feature.properties.NAME; });
-      if (countyData) {
-        feature.properties = {...feature.properties, ...countyData};
-      }
-    });
-    colorScale = makeColorScale(nevadaCounties.features);
-    setEnumerationUnits(nevadaCounties, map, path, colorScale);
-    setChart(csvData, colorScale);
-    createDropdown(attrArray); // Create dropdown after everything is set up
+      csvData = data[0];
+      var nevadaTopojson = data[1];
+      var nevadaCounties = topojson.feature(nevadaTopojson, nevadaTopojson.objects.Nevada_Counties_SIMPLIFIED);
+      nevadaCounties.features.forEach(function(feature) {
+          var countyData = csvData.find(function(d) { return d.NAME === feature.properties.NAME; });
+          if (countyData) {
+              feature.properties = {...feature.properties, ...countyData};
+          }
+      });
+      colorScale = makeColorScale(nevadaCounties.features);
+      setEnumerationUnits(nevadaCounties, map, path, colorScale);
+      setChart(csvData, colorScale);
   });
 
   // Function to set enumeration units and apply color scale
@@ -91,13 +92,13 @@ function setMap() {
 // Define color scale function using Natural Breaks
 function makeColorScale(data) {
   var domainArray = data.map(function(d) {
-    return +d.properties[expressed];
+      return +d.properties[expressed];
   });
-  var clusters = ss.ckmeans(domainArray, 9); // Ensure the number of classes matches colorClasses length
+  var clusters = ss.ckmeans(domainArray, 9);
   domainArray = clusters.map(function(d) { return d3.min(d); });
-  domainArray.shift(); // Create class breakpoints
+  domainArray.shift();
   return d3.scaleThreshold().domain(domainArray).range([
-    "#f7fcf0", "#e0f3db", "#ccebc5", "#a8ddb5", "#7bccc4", "#4eb3d3", "#2b8cbe", "#0868ac", "#084081"
+      "#f7fcf0", "#e0f3db", "#ccebc5", "#a8ddb5", "#7bccc4", "#4eb3d3", "#2b8cbe", "#0868ac", "#084081"
   ]);
 }
 
@@ -139,6 +140,11 @@ function callback(data) {
 
 // Function to create coordinated bar chart
 function setChart(csvData, colorScale) {
+
+  yScale = d3.scaleLinear()
+  .range([463, 0])
+  .domain([0, d3.max(csvData, function (d) { return parseFloat(d[expressed]); })]);
+
     // Chart frame dimensions remain the same as you've defined them
     var chartWidth = window.innerWidth * 0.45,
         chartHeight = 460,
@@ -164,32 +170,35 @@ function setChart(csvData, colorScale) {
         .attr("transform", translate)
         .attr("fill", "white");
 
-    // Scales and data binding remain unchanged
-    var yScale = d3.scaleLinear()
-      .range([463, 0])
-      .domain([0, d3.max(csvData, function (d) { return parseFloat(d[expressed]); })]);
-
-    console.log("Max value for " + expressed + ": " + d3.max(csvData, function (d) { return parseFloat(d[expressed]); }));
-
 
     // Adjust `x` attribute calculation for the bars
     var bars = chart.selectAll(".bar")
-        .data(csvData)
-        .enter()
+    .data(csvData)
+    .enter()
+    .append("rect")
+    .sort(function (a, b) { return b[expressed] - a[expressed]; })
+    .attr("class", function (d) { return "bar " + d.NAME; })
+    .attr("width", chartInnerWidth / csvData.length - 1)
+    .attr("x", function (d, i) {
+        var totalBarsWidth = csvData.length * (chartInnerWidth / csvData.length);
+        var startingPoint = chartWidth - rightPadding - totalBarsWidth;
+        return i * (chartInnerWidth / csvData.length) + startingPoint;
+    })
+    .attr("height", function (d) { return 463 - yScale(parseFloat(d[expressed])); })
+    .attr("y", function (d) { return yScale(parseFloat(d[expressed])); })
+    .style("fill", function (d) { return colorScale(d[expressed]); });
+
+        // Update existing bars
+        bars.enter()
         .append("rect")
-        .sort(function (a, b) { return b[expressed] - a[expressed]; })
-        .attr("class", function (d) { return "bar " + d.NAME; })
-        .attr("width", chartInnerWidth / csvData.length - 1)
-        .attr("x", function (d, i) {
-            // Adjust starting position of bars to center towards the right
-            var totalBarsWidth = csvData.length * (chartInnerWidth / csvData.length);
-            var startingPoint = chartWidth - rightPadding - totalBarsWidth;
-            return i * (chartInnerWidth / csvData.length) + startingPoint;
-        })
-        .attr("height", function (d) { return 463 - yScale(parseFloat(d[expressed])); })
-        .attr("y", function (d) { return yScale(parseFloat(d[expressed])) + topBottomPadding; })
-        .style("fill", function (d) { return colorScale(d[expressed]); });
-  
+        .merge(bars)
+        .transition()
+        .duration(500)
+        .attr("y", function(d) { return yScale(parseFloat(d[expressed])); })
+        .attr("height", function(d) { return 463 - yScale(parseFloat(d[expressed])); })
+        .style("fill", function(d) { return colorScale(d[expressed]); });
+
+    bars.exit().remove(); // Remove any unneeded bars
     // Annotate bars with attribute value text
     var numbers = chart.selectAll(".numbers")
       .data(csvData)
@@ -227,14 +236,35 @@ function setChart(csvData, colorScale) {
 
 
 function updateChart(csvData, colorScale) {
-  // Bind new data and update bars
+  yScale.domain([0, d3.max(csvData, d => parseFloat(d[expressed]))]);
+
   var bars = d3.selectAll(".bar")
-    .data(csvData)
-    .transition()
-    .duration(500)
-    .attr("height", function(d) { return 463 - yScale(parseFloat(d[expressed])); })
-    .attr("y", function(d) { return yScale(parseFloat(d[expressed])) + topBottomPadding; })
-    .style("fill", function(d) { return colorScale(d[expressed]); });
+      .data(csvData, d => d.NAME);
+
+  bars.enter()
+      .append("rect")
+      .merge(bars)
+      .transition()
+      .duration(500)
+      .attr("height", d => 463 - yScale(parseFloat(d[expressed])))
+      .attr("y", d => yScale(parseFloat(d[expressed])))
+      .style("fill", d => colorScale(d[expressed]));
+
+  bars.exit().remove();
+
+  // Update the bar labels
+  var numbers = d3.selectAll(".numbers")
+      .data(csvData, d => d.NAME);
+
+  numbers.enter()
+      .append("text")
+      .merge(numbers)
+      .transition()
+      .duration(500)
+      .attr("y", d => yScale(parseFloat(d[expressed])) + 15)
+      .text(d => d[expressed]);
+
+  numbers.exit().remove();
 }
 
 function updateMap(colorScale) {
@@ -256,16 +286,15 @@ function createDropdown(attrArray) {
       .append("select")
       .attr("class", "dropdown")
       .on("change", function() {
-          changeAttribute(this.value); // Ensure this triggers the update correctly
+          changeAttribute(this.value);
       });
 
-  // Add options
   dropdown.selectAll("option")
       .data(attrArray)
       .enter()
       .append("option")
-      .attr("value", function(d) { return d; })
-      .text(function(d) { return d; });
+      .attr("value", d => d)
+      .text(d => d);
 }
 
 
@@ -278,19 +307,14 @@ window.onload = function() {
 
 function changeAttribute(attribute) {
   expressed = attribute;
-  
-  // Recreate the color scale
   colorScale = makeColorScale(map.selectAll(".county").data());
-
-  // Recolor enumeration units
   d3.selectAll(".county")
-    .transition()
-    .duration(500)
-    .style("fill", function(d) {
-      var value = d.properties[expressed];
-      return value ? colorScale(value) : "#ccc";
-    });
+      .transition()
+      .duration(500)
+      .style("fill", d => {
+          var value = d.properties[expressed];
+          return value ? colorScale(value) : "#ccc";
+      });
 
-  // Update the chart
   updateChart(csvData, colorScale);
 }
