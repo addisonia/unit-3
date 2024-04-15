@@ -236,10 +236,13 @@ function setChart(csvData, colorScale) {
 
 
 function updateChart(csvData, colorScale) {
-  yScale.domain([0, d3.max(csvData, d => parseFloat(d[expressed]))]);
+  yScale = d3.scaleLinear()
+  .range([463, 0])
+  .domain([0, d3.max(csvData, function (d) { return parseFloat(d[expressed]); }) * 1.2]);
 
   var bars = d3.selectAll(".bar")
-      .data(csvData, d => d.NAME);
+  .sort(function (a, b) { return b[expressed] - a[expressed]; })
+  .data(csvData, d => d.NAME);
 
   bars.enter()
       .append("rect")
@@ -314,6 +317,42 @@ function changeAttribute(attribute) {
       .style("fill", d => {
           var value = d.properties[expressed];
           return value ? colorScale(value) : "#ccc";
+      });
+
+      d3.select(".chartTitle")
+      .text(function() {
+          switch (expressed) {
+              case "POP_GROWTH_PCT_SINCE_2000":
+                  return "Population Growth (%)";
+              case "MEDIAN_INCOME":
+                  return "Median Income";
+              case "UNEMPLOYMENT_RATE":
+                  return "Unemployment Rate";
+              case "POVERTY_RATE":
+                  return "Poverty Rate";
+              case "EDUCATION_LEVEL":
+                  return "Education Level";
+              default:
+                  return "";
+          }
+      });
+  
+  d3.select(".chartTitle + tspan")
+      .text(function() {
+          switch (expressed) {
+              case "POP_GROWTH_PCT_SINCE_2000":
+                  return "since 2000 in Nevada Counties";
+              case "MEDIAN_INCOME":
+                  return "in Nevada Counties";
+              case "UNEMPLOYMENT_RATE":
+                  return "in Nevada Counties";
+              case "POVERTY_RATE":
+                  return "in Nevada Counties";
+              case "EDUCATION_LEVEL":
+                  return "in Nevada Counties";
+              default:
+                  return "";
+          }
       });
 
   updateChart(csvData, colorScale);
