@@ -463,3 +463,41 @@ function moveLabel(){
       .style("top", y + "px");
 };
 
+
+
+// Toggle info popup visibility on button click
+document.addEventListener('DOMContentLoaded', function() {
+  const infoButton = document.querySelector('.info-button');
+  const infoPopup = document.querySelector('.info-popup');
+
+  // Toggle popup display on info button click
+  infoButton.addEventListener('click', function(event) {
+    // Prevent the document click listener from firing
+    event.stopPropagation();
+    // Toggle the display
+    infoPopup.style.display = infoPopup.style.display === 'block' ? 'none' : 'block';
+    positionPopup(infoPopup, this);
+  });
+
+  // Function to position the popup right below the button
+  function positionPopup(popup, button) {
+    const buttonRect = button.getBoundingClientRect();
+    popup.style.top = (buttonRect.bottom + window.scrollY) + 'px'; // Position below the button
+    
+    // Calculate left position to slightly shift the popup to the left of the center of the button
+    const popupOffset = popup.offsetWidth - buttonRect.width; // Find the difference in width
+    let leftPos = buttonRect.left - popupOffset + 10; // Shift popup to the left by reducing its left position; adjust the value to fit your needs
+    
+    // Ensure popup does not go off the left side of the screen
+    leftPos = Math.max(leftPos, 5); // Prevent cutoff at the screen edge
+    popup.style.left = leftPos + 'px';
+  }
+  
+  
+  
+
+  // Hide the popup when clicking outside of it
+  document.addEventListener('click', function() {
+    infoPopup.style.display = 'none';
+  });
+});
