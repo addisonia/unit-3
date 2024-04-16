@@ -1,5 +1,5 @@
 // Pseudo-global variables
-var attrArray = ["POP_GROWTH_PCT_SINCE_2000", "MEDIAN_INCOME", "UNEMPLOYMENT_RATE", "POVERTY_RATE", "EDUCATION_LEVEL"];
+var attrArray = ["POP_GROWTH_PCT_SINCE_2000", "MEDIAN_INCOME", "MEAN_INCOME", "INCOME_100K_OR_MORE_PCT", "UNEMPLOYMENT_RATE", "POVERTY_RATE", "EDUCATION_LEVEL"];
 var expressed = attrArray[0]; // Initial attribute
 var csvData, map, colorScale, yScale; // Define globally for access in multiple functions
 
@@ -340,6 +340,8 @@ function createDropdown(attrArray) {
   var readableNames = {
       "POP_GROWTH_PCT_SINCE_2000": "Population Growth (%) Since 2000",
       "MEDIAN_INCOME": "Median Income",
+      "MEAN_INCOME": "Mean Household Income",
+      "INCOME_100K_OR_MORE_PCT": "Income of 100k or more (%)",
       "UNEMPLOYMENT_RATE": "Unemployment Rate",
       "POVERTY_RATE": "Poverty Rate",
       "EDUCATION_LEVEL": "Education Level"
@@ -364,7 +366,7 @@ function createDropdown(attrArray) {
 // Call createDropdown in your window.onload function
 window.onload = function() {
   setMap();
-  createDropdown(["POP_GROWTH_PCT_SINCE_2000", "MEDIAN_INCOME", "UNEMPLOYMENT_RATE", "POVERTY_RATE", "EDUCATION_LEVEL"]); // Update this list based on your dataset
+  createDropdown(["POP_GROWTH_PCT_SINCE_2000", "MEAN_INCOME", "MEDIAN_INCOME", "INCOME_100K_OR_MORE_PCT", "UNEMPLOYMENT_RATE", "POVERTY_RATE", "EDUCATION_LEVEL"]); // Update this list based on your dataset
 };
 
 
@@ -387,7 +389,9 @@ function changeAttribute(attribute) {
 function updateChartTitle() {
   var titles = {
       "POP_GROWTH_PCT_SINCE_2000": "Population Growth (%) Since 2000",
-      "MEDIAN_INCOME": "Median Income",
+      "MEDIAN_INCOME": "Median Household Income",
+      "MEAN_INCOME": "Mean Household Income",
+      "INCOME_100K_OR_MORE_PCT": "Income of 100k or more (%)",
       "UNEMPLOYMENT_RATE": "Unemployment Rate",
       "POVERTY_RATE": "Poverty Rate",
       "EDUCATION_LEVEL": "Education Level"
@@ -426,9 +430,9 @@ function setLabel(props) {
   var labelValue = props[expressed];
   
   // Append "%" for rates specifically
-  if (expressed === "POP_GROWTH_PCT_SINCE_2000" || expressed === "UNEMPLOYMENT_RATE" || expressed === "EDUCATION_LEVEL" || expressed === "POVERTY_RATE") {
+  if (expressed === "POP_GROWTH_PCT_SINCE_2000" || expressed === "UNEMPLOYMENT_RATE" || expressed === "INCOME_100K_OR_MORE_PCT" || expressed === "EDUCATION_LEVEL" || expressed === "POVERTY_RATE") {
       labelValue += "%";  // Ensure the percentage sign is appended correctly
-  } else if (expressed === "MEDIAN_INCOME") {
+  } else if (expressed === "MEDIAN_INCOME" || expressed === "MEAN_INCOME") {
     labelValue = "$" + parseFloat(labelValue).toLocaleString();  // Prepend "$" and format with commas
   }
 
