@@ -10,6 +10,7 @@ body {
     margin: 10px 0 0 20px;
     width: 50%; /* Set the map width to 50% of the screen */
     float: left; /* Float the map to the left */
+    height: 600px;
   }
   
   .county {
@@ -34,6 +35,9 @@ body {
     margin: 10px 20px 0 0;
     width: 45%; /* Set the chart width to 45% of the screen */
     float: right; /* Float the chart to the right */
+    height: auto; /* Change height to auto to adjust based on content */
+    display: flex; /* Use flexbox for vertical centering */
+    align-items: center; /* Center the chart vertically */
   }
   
   .chartTitle {
@@ -105,4 +109,22 @@ body {
   margin: 0;
   display: block;
   font-size: 12px; /* Smaller font size for details */
+}
+
+
+/* Media query for screens 800px or smaller */
+@media (max-width: 800px) {
+  .map, .chart {
+      float: none; /* Remove floating */
+      margin: 10px auto; /* Center align both */
+  }
+  .map {
+      height: 350px; /* Smaller height for the map */
+      width: 100%;
+  }
+  .chart {
+      margin-top: 0; /* Reduce space above chart */
+      height: 400px;
+      width: 100%;
+  }
 }

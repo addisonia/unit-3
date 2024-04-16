@@ -9,11 +9,28 @@ window.onload = function() {
   createDropdown(attrArray);
 };
 
+window.onresize = function(){
+  setMap();
+}
+
 // Set up choropleth map
 
 function setMap() {
-  var width = window.innerWidth * 0.5,
-      height = 460;
+  // Remove the existing SVG if it exists
+  d3.select(".map").remove();
+  d3.select(".chart").remove();
+
+  // Define a minimum height threshold
+  var minHeightThreshold = 400;  // or whatever minimum height you prefer
+
+  // Calculate width and height based on current window size
+  var width = window.innerWidth <= 800 ? window.innerWidth : window.innerWidth * 0.5;
+  var height = window.innerWidth <= 800 ? 350 : window.innerHeight * 0.75;
+
+  // Ensure the height does not go below the minimum threshold
+  if (window.innerWidth > 800 && height < minHeightThreshold) {
+    height = minHeightThreshold;
+  }
 
   map = d3.select("body")
       .append("svg")
@@ -21,11 +38,21 @@ function setMap() {
       .attr("width", width)
       .attr("height", height);
 
+  // Check for window width and adjust projection settings
+  var scale, center;
+  if (window.innerWidth <= 800) {
+    scale = 2500; // smaller scale for less zoom
+    center = [-2, 38.5]; // adjust center to show more area
+  } else {
+    scale = 3000; // original scale
+    center = [-2, 38.5]; // original center
+  }
+
   var projection = d3.geoAlbers()
       .rotate([115, 0, 0])
-      .center([-2, 38.5])
+      .center(center)
       .parallels([35, 43])
-      .scale(3000)
+      .scale(scale)
       .translate([width / 2, height / 2]);
 
   var path = d3.geoPath().projection(projection);
@@ -100,6 +127,18 @@ function setMap() {
     .append("path") // Append each element to the svg as a path element
     .attr("class", "gratLines") // Assign class for styling
     .attr("d", path); // Project graticule lines
+
+
+
+    let resizeTimeout;
+    window.onresize = function() {
+      clearTimeout(resizeTimeout);
+      resizeTimeout = setTimeout(function() {
+        setMap();
+        setChart(csvData, colorScale); // Ensure you call setChart with proper arguments
+      }, 100);
+    };
+
 }
 
 // Define color scale function using Natural Breaks
@@ -163,18 +202,21 @@ function callback(data) {
 
 // Function to create coordinated bar chart
 function setChart(csvData, colorScale) {
-  var chartWidth = window.innerWidth * 0.45,
-  chartHeight = 460,
-  margin = {top: 10, right: 20, bottom: 30, left: 50}, // Adjust left for axis labels
-  chartInnerWidth = chartWidth - margin.left - margin.right,
-  chartInnerHeight = chartHeight - margin.top - margin.bottom;
+  // Remove the previous chart before drawing a new one
+  d3.select(".chart").remove();
 
-var chart = d3.select("body").append("svg")
-  .attr("width", chartWidth)
-  .attr("height", chartHeight)
-  .attr("class", "chart")
-  .append("g")
-  .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  var chartWidth = window.innerWidth <= 800 ? window.innerWidth * 0.95 : window.innerWidth * 0.45,
+      chartHeight = window.innerWidth <= 800 ? 400 : 600, // Reduce chart height by 20% for small screens
+      margin = {top: 30, right: 30, bottom: 30, left: 40}, // Adjust margins for better spacing
+      chartInnerWidth = chartWidth - margin.left - margin.right,
+      chartInnerHeight = chartHeight - margin.top - margin.bottom;
+
+  var chart = d3.select("body").append("svg")
+      .attr("width", chartWidth)
+      .attr("height", chartHeight)
+      .attr("class", "chart")
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
 
 var maxDataValue = d3.max(csvData, function(d) { return parseFloat(d[expressed]); });
 yScale = d3.scaleLinear()
@@ -233,12 +275,26 @@ bars.append("desc")
 
 
 function updateChart(csvData, colorScale) {
-  var chartWidth = window.innerWidth * 0.45,
-      margin = {top: 10, right: 20, bottom: 30, left: 50}, // Adjust left for axis labels
-      chartInnerWidth = chartWidth - margin.left - margin.right,
-      chartInnerHeight = 460 - margin.top - margin.bottom;
 
-  var chart = d3.select(".chart").select("g"),
+  var chartWidth = window.innerWidth <= 800 ? window.innerWidth * 0.95 : window.innerWidth * 0.45,
+      chartHeight = window.innerWidth <= 800 ? 400 : 600, // Reduce chart height by 20% for small screens
+      margin = {top: 30, right: 30, bottom: 30, left: 40}, // Adjust margins for better spacing
+      chartInnerWidth = chartWidth - margin.left - margin.right,
+      chartInnerHeight = chartHeight - margin.top - margin.bottom;
+
+  // Check if the chart group exists, if not, create it
+  var chart = d3.select(".chart");
+  if (chart.empty()) {
+    chart = d3.select("body").append("svg")
+      .attr("width", chartWidth)
+      .attr("height", chartInnerHeight + margin.top + margin.bottom)
+      .attr("class", "chart")
+      .append("g")
+      .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+  } else {
+    chart = chart.select("g");
+  }
+
   maxDataValue = d3.max(csvData, function(d) { return parseFloat(d[expressed]); });
 
   // Update the scale domain to maintain the 30% empty space at the top
@@ -345,7 +401,7 @@ function updateChartTitle() {
 
 function highlight(props) {
   d3.selectAll("." + props.NAME.replace(/ /g, '_'))
-      .style("stroke", "blue")
+      .style("stroke", "red")
       .style("stroke-width", "2px");
 
   // Set label for highlighted element
@@ -370,7 +426,7 @@ function setLabel(props) {
   var labelValue = props[expressed];
   
   // Append "%" for rates specifically
-  if (expressed === "POP_GROWTH_PCT_SINCE_2000" || expressed === "UNEMPLOYMENT_RATE" || expressed === "POVERTY_RATE") {
+  if (expressed === "POP_GROWTH_PCT_SINCE_2000" || expressed === "UNEMPLOYMENT_RATE" || expressed === "EDUCATION_LEVEL" || expressed === "POVERTY_RATE") {
       labelValue += "%";  // Ensure the percentage sign is appended correctly
   } else if (expressed === "MEDIAN_INCOME") {
     labelValue = "$" + parseFloat(labelValue).toLocaleString();  // Prepend "$" and format with commas
