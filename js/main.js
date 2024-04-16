@@ -1,5 +1,5 @@
 // Pseudo-global variables
-var attrArray = ["POP_GROWTH_PCT_SINCE_2000", "MEDIAN_INCOME", "MEAN_INCOME", "INCOME_100K_OR_MORE_PCT", "UNEMPLOYMENT_RATE", "POVERTY_RATE", "EDUCATION_LEVEL"];
+var attrArray = ["POP_GROWTH_PCT_SINCE_2000", "MEDIAN_INCOME", "MEAN_INCOME", "INCOME_100K_OR_MORE_PCT", "UNEMPLOYMENT_RATE", "POVERTY_RATE", "EDUCATION_LEVEL", "AGRICULTURE_FORESTRY_FISHING_HUNTING_MINING_PCT"];
 var expressed = attrArray[0]; // Initial attribute
 var csvData, map, colorScale, yScale; // Define globally for access in multiple functions
 
@@ -150,6 +150,8 @@ function makeColorScale(data) {
   domainArray = clusters.map(function(d) { return d3.min(d); });
   domainArray.shift(); // Adjust to remove the first breakpoint if necessary
   return d3.scaleThreshold().domain(domainArray).range([ 
+      "#FFFFFF",
+      "#e7f5e4",
       "#ccebc5", 
       "#a8ddb5", 
       "#7bccc4", 
@@ -342,9 +344,10 @@ function createDropdown(attrArray) {
       "MEDIAN_INCOME": "Median Household Income",
       "MEAN_INCOME": "Mean Household Income",
       "INCOME_100K_OR_MORE_PCT": "Income of 100k or more (%)",
+      "AGRICULTURE_FORESTRY_FISHING_HUNTING_MINING_PCT": "(%) of Workers in Primary Industries",
       "UNEMPLOYMENT_RATE": "Unemployment Rate",
       "POVERTY_RATE": "Poverty Rate",
-      "EDUCATION_LEVEL": "Education Level"
+      "EDUCATION_LEVEL": "(%) with Graduate Degrees"
   };
 
   var dropdown = d3.select("body").append("select")
@@ -366,7 +369,7 @@ function createDropdown(attrArray) {
 // Call createDropdown in your window.onload function
 window.onload = function() {
   setMap();
-  createDropdown(["POP_GROWTH_PCT_SINCE_2000", "MEAN_INCOME", "MEDIAN_INCOME", "INCOME_100K_OR_MORE_PCT", "UNEMPLOYMENT_RATE", "POVERTY_RATE", "EDUCATION_LEVEL"]); // Update this list based on your dataset
+  createDropdown(["POP_GROWTH_PCT_SINCE_2000", "MEAN_INCOME", "MEDIAN_INCOME", "INCOME_100K_OR_MORE_PCT", "AGRICULTURE_FORESTRY_FISHING_HUNTING_MINING_PCT", "UNEMPLOYMENT_RATE", "POVERTY_RATE", "EDUCATION_LEVEL"]); // Update this list based on your dataset
 };
 
 
@@ -392,9 +395,10 @@ function updateChartTitle() {
       "MEDIAN_INCOME": "Median Household Income",
       "MEAN_INCOME": "Mean Household Income",
       "INCOME_100K_OR_MORE_PCT": "Income of 100k or more (%)",
+      "AGRICULTURE_FORESTRY_FISHING_HUNTING_MINING_PCT": "Agriculture, Forestry, Hunting, and Mining",
       "UNEMPLOYMENT_RATE": "Unemployment Rate",
       "POVERTY_RATE": "Poverty Rate",
-      "EDUCATION_LEVEL": "Education Level"
+      "EDUCATION_LEVEL": "(%) with Graduate Degrees"
   };
 
   d3.select(".chartTitle").text(titles[expressed]);
@@ -430,7 +434,7 @@ function setLabel(props) {
   var labelValue = props[expressed];
   
   // Append "%" for rates specifically
-  if (expressed === "POP_GROWTH_PCT_SINCE_2000" || expressed === "UNEMPLOYMENT_RATE" || expressed === "INCOME_100K_OR_MORE_PCT" || expressed === "EDUCATION_LEVEL" || expressed === "POVERTY_RATE") {
+  if (expressed === "POP_GROWTH_PCT_SINCE_2000" || expressed === "UNEMPLOYMENT_RATE" || expressed === "INCOME_100K_OR_MORE_PCT" || expressed === "EDUCATION_LEVEL" || expressed === "POVERTY_RATE" || expressed === "AGRICULTURE_FORESTRY_FISHING_HUNTING_MINING_PCT") {
       labelValue += "%";  // Ensure the percentage sign is appended correctly
   } else if (expressed === "MEDIAN_INCOME" || expressed === "MEAN_INCOME") {
     labelValue = "$" + parseFloat(labelValue).toLocaleString();  // Prepend "$" and format with commas
