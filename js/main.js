@@ -339,7 +339,7 @@ function updateMap(colorScale) {
 function createDropdown(attrArray) {
   var readableNames = {
       "POP_GROWTH_PCT_SINCE_2000": "Population Growth (%) Since 2000",
-      "MEDIAN_INCOME": "Median Income",
+      "MEDIAN_INCOME": "Median Household Income",
       "MEAN_INCOME": "Mean Household Income",
       "INCOME_100K_OR_MORE_PCT": "Income of 100k or more (%)",
       "UNEMPLOYMENT_RATE": "Unemployment Rate",
